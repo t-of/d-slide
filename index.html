@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#10131c">
+  <meta name="description" content="数字の見えない 15 パズル。番号の 1 桁だけの白黒、正しい場所とのずれ、行と列の合計など、手がかりから番号を読み解いて元の並びに戻す。">
+  <title>かずかくし — 番号の見えない15パズル</title>
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="かずかくし">
+  <meta property="og:title" content="かずかくし — 番号の見えない15パズル">
+  <meta property="og:description" content="数字の見えない 15 パズル。番号の 1 桁だけの白黒、正しい場所とのずれ、行と列の合計など、手がかりから番号を読み解いて元の並びに戻す。">
+  <meta property="og:url" content="https://t-of.github.io/kazukakushi/">
+  <meta property="og:image" content="https://t-of.github.io/kazukakushi/icons/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="ja_JP">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- apple-mobile-web-app-status-bar-style は付けない（black-translucent だと iOS 26 で上部が隠れる） -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="かずかくし">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+
+  <link rel="stylesheet" href="./webapp-kit/webapp-kit.css">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <!-- タイトル -->
+  <main class="screen title" id="title">
+    <header class="title__head">
+      <div class="board board--mini" id="sample" aria-hidden="true"></div>
+      <h1 class="title__name">かずかくし</h1>
+      <p class="title__catch">番号の見えない15パズル</p>
+    </header>
+
+    <section class="howto">
+      <ol class="howto__list">
+        <li>空きマスと同じ行か列のタイルを押すと、空きマスのほうへすべる</li>
+        <li>タイルの番号は見えない。見えるのは手がかりだけ。<b>番号どおりに並んだらクリア</b></li>
+        <li>手がかりは 3 種類から選ぶ</li>
+      </ol>
+      <div class="goal">
+        <div class="board board--mini board--goal" id="goal" aria-label="完成図"></div>
+        <p class="goal__note">完成図。<b>空きは左上</b>、1〜15 が左上から右へ並ぶ</p>
+      </div>
+      <ul class="tips">
+        <li><b>ビット</b>のこつ: 桁を切り替えて見比べると、1 枚ずつの番号が分かる</li>
+        <li><b>合計</b>のこつ: タイルを縦に動かすと 2 つの行の合計が変わる。変わった分がそのタイルの番号</li>
+      </ul>
+    </section>
+
+    <section class="modes" id="modes"></section>
+
+    <footer class="foot">
+      <div class="foot__actions">
+        <button class="pill" id="sound-btn" aria-pressed="true">音 オン</button>
+        <button class="pill" data-wak="install" hidden>アプリにする</button>
+        <button class="pill" data-wak="share">共有</button>
+      </div>
+      <p class="credit"><a href="/">T.OF...</a> のアプリ</p>
+    </footer>
+  </main>
+
+  <!-- 遊ぶ -->
+  <main class="screen play" id="play" hidden>
+    <header class="hud">
+      <button class="pill hud__back" id="back-btn">もどる</button>
+      <div class="hud__moves"><span class="hud__label"><span id="mode-name"></span> ・ 手数</span><span class="hud__num" id="moves">0</span></div>
+      <div class="hud__min" id="hud-min">最少 <span id="min">0</span></div>
+    </header>
+
+    <div class="info">
+      <p class="info__count" id="count">正しい場所 <b id="correct">0</b> / 15</p>
+      <div class="info__goal" id="bit-goal">
+        <span class="info__label">完成図（<span id="bit-goal-digit">8</span> の桁）</span>
+        <div class="board board--mini" id="bit-goal-board" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <section class="stage" id="stage">
+      <div class="puzzle" id="puzzle">
+        <div class="sums sums--cols" id="col-sums"></div>
+        <div class="sums sums--rows" id="row-sums"></div>
+        <div class="board" id="board"></div>
+      </div>
+    </section>
+
+    <div class="digits" id="digits" role="group" aria-label="見る桁"></div>
+
+    <footer class="tools">
+      <button class="btn" id="reset-btn">はじめから</button>
+      <button class="btn" id="another-btn">べつの盤</button>
+    </footer>
+
+    <!-- クリア（盤の上に下寄せで重ねる） -->
+    <section class="clear" id="clear" hidden>
+      <div class="clear__card" role="dialog" aria-labelledby="clear-title">
+        <h2 class="clear__title" id="clear-title">そろった</h2>
+        <p class="clear__moves"><span id="clear-moves">0</span> 手</p>
+        <p class="clear__badges" id="badges" hidden><span class="badge">記録更新</span></p>
+        <button class="btn btn--main" id="again-btn">もう一度</button>
+        <div class="clear__row">
+          <button class="btn" id="share-btn">共有</button>
+          <button class="btn" id="home-btn">タイトルへ</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="./webapp-kit/webapp-kit.js"></script>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
