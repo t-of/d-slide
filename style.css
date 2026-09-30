@@ -1,18 +1,20 @@
 :root {
-  --bg: #10131c;
-  --fg: #eceef3;
-  --muted: #9aa0ab;
-  --accent: #ffd35c;
-  --frame: #1c2130;         /* 盤のわく */
-  --hole: #0a0c13;          /* 空きマスのくぼみ */
-  --paper: #e8e3d4;         /* タイル（ビットの 0） */
-  --paper-edge: #c9c2af;
-  --ink: #1f2436;           /* タイルの上の文字 */
-  --dark: #39415e;          /* ビットの 1 */
-  --dark-edge: #262c42;
+  --bg: #0b0d12;
+  --fg: #eef1f7;
+  --muted: #7c8494;
+  --accent: #4fe0c7;        /* シアン系のアクセント。D-SLIDE の主役色 */
+  --accent-ink: #04211c;    /* アクセントの上の文字 */
+  --frame: #171b24;         /* 盤のわく */
+  --hole: #07080c;          /* 空きマスのくぼみ */
+  --paper: #e7ebf2;         /* タイル（ビットの 0） */
+  --paper-edge: #c3cad6;
+  --ink: #12151c;           /* タイルの上の文字 */
+  --dark: #232a3d;          /* ビットの 1 */
+  --dark-edge: #171c2a;
   --ok: #5fcf8f;            /* 正しい場所・合った合計 */
-  --face: rgba(255, 255, 255, 0.07);
-  --line: rgba(255, 255, 255, 0.14);
+  --face: rgba(255, 255, 255, 0.06);
+  --line: rgba(255, 255, 255, 0.12);
+  --mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 }
 
 * { box-sizing: border-box; }
@@ -68,7 +70,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   min-height: 56px;
   border: 0;
   background: var(--accent);
-  color: #2b2106;
+  color: var(--accent-ink);
   font-size: 19px;
   letter-spacing: 0.1em;
 }
@@ -140,13 +142,18 @@ button { font: inherit; color: inherit; cursor: pointer; }
   inset: 0;
   display: grid;
   place-items: center;
-  font-size: calc(var(--t) * 0.44);
-  font-weight: 800;
+  font-family: var(--mono);
+  font-size: calc(var(--t) * 0.42);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
   opacity: 0;
   transform: scale(0.6);
 }
 .solved .clue, .solved .tile::before { visibility: hidden; }
 .solved .num { opacity: 1; transform: none; transition: opacity 0.2s var(--delay, 0s), transform 0.25s var(--delay, 0s); }
+/* ナンバーモード: 番号を最初から見せる（封の印は消す） */
+.show-num .num { opacity: 1; transform: none; }
+.show-num .tile::before { content: none; }
 
 /* 小さな盤（見本・完成図・モードの絵） */
 .board--mini { --t: 18px; --g: 2px; }
@@ -156,8 +163,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
   border-radius: 3px;
   background: var(--paper);
   color: var(--ink);
-  font-size: calc(var(--t) * 0.5);
+  font-family: var(--mono);
+  font-size: calc(var(--t) * 0.48);
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 .mtile.one { background: var(--dark); }
 .mtile.right { background: radial-gradient(circle, var(--ok) 32%, var(--paper) 36%); }
@@ -167,49 +176,72 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 /* ---- タイトル ---- */
 
-.title { gap: 14px; }
-.title__head { text-align: center; padding-top: 12px; }
-#sample { --t: 26px; --g: 4px; display: inline-grid; }
-.title__name { margin: 12px 0 0; font-size: 34px; letter-spacing: 0.12em; }
-.title__catch { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+.title { gap: 10px; }
+.title__head { text-align: center; padding-top: 10px; }
+.title__name {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 44px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+.title__dash { color: var(--accent); }
+.title__catch {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
 
 .howto {
-  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
   background: var(--face);
+  border: 1px solid var(--line);
   border-radius: 12px;
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
 }
-.howto b { color: var(--accent); font-weight: 600; }
-.howto__list { margin: 0; padding-left: 18px; }
-.goal { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
-.board--goal { --t: 20px; flex: none; }
-.goal__note { margin: 0; font-size: 13px; color: var(--muted); }
-.tips { margin: 10px 0 0; padding: 0; list-style: none; font-size: 12px; color: var(--muted); line-height: 1.5; }
-.tips li + li { margin-top: 2px; }
+.howto b { color: var(--fg); font-weight: 600; }
+.board--goal { --t: 17px; --g: 2px; flex: none; }
 
 .modes { display: flex; flex-direction: column; gap: 8px; }
 .mode {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 14px;
   min-height: 44px;
-  padding: 12px;
+  padding: 12px 12px 12px 16px;
   border: 1px solid var(--line);
   background: var(--face);
-  border-radius: 14px;
+  border-radius: 10px;
   text-align: left;
 }
-.mode--last { border-color: rgba(255, 211, 92, 0.55); }
+.mode::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 8px; bottom: 8px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--line);
+}
+.mode--last::before { background: var(--accent); }
 .mode__pic { --t: 14px; --g: 2px; flex: none; }
 .mode__pic--goukei { grid-template-columns: repeat(5, var(--t)); background: transparent; }
 .mode__pic--goukei .mtile, .mode__pic--goukei .mhole { border-radius: 2px; }
 .mode__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .mode__head { display: flex; align-items: baseline; gap: 8px; }
-.mode__name { font-size: 18px; font-weight: 700; }
-.mode__level { font-size: 12px; color: var(--muted); }
+.mode__name { font-size: 17px; font-weight: 700; }
+.mode__level { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.04em; }
 .mode__desc { font-size: 12px; color: var(--muted); line-height: 1.45; }
-.mode__record { font-size: 13px; color: var(--accent); }
+.mode__record { font-family: var(--mono); font-size: 12px; color: var(--accent); }
 .mode__record:empty { display: none; }
 
 .foot { margin-top: auto; padding-top: 8px; text-align: center; }
@@ -224,7 +256,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .hud__back { justify-self: start; min-height: 44px; }
 .hud__moves { display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
 .hud__label { font-size: 11px; color: var(--muted); }
-.hud__num { font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.hud__num { font-family: var(--mono); font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .hud__min { justify-self: end; font-size: 13px; color: var(--muted); }
 
 .info { display: flex; justify-content: center; min-height: 28px; }
@@ -256,7 +288,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 }
 .sums--cols .sum { height: calc(var(--t) - var(--g)); }
 .sums--rows .sum { width: calc(var(--t) - var(--g)); }
-.sum b { font-size: calc(var(--t) * 0.34); font-variant-numeric: tabular-nums; }
+.sum b { font-family: var(--mono); font-size: calc(var(--t) * 0.34); font-variant-numeric: tabular-nums; }
 .sum small { font-size: 10px; color: var(--muted); }
 .sum.hit { background: rgba(95, 207, 143, 0.2); color: var(--ok); }
 
@@ -271,7 +303,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   font-size: 20px;
   font-weight: 700;
 }
-.digit[aria-pressed="true"] { border-color: var(--accent); background: rgba(255, 211, 92, 0.18); color: #fff; }
+.digit[aria-pressed="true"] { border-color: var(--accent); background: rgba(79, 224, 199, 0.16); color: #fff; }
 .digit__ok { display: none; }
 .digit.ok .digit__ok {
   display: block;
@@ -312,14 +344,14 @@ button { font: inherit; color: inherit; cursor: pointer; }
   animation: rise 0.3s ease-out;
 }
 @keyframes rise { from { transform: translateY(24px); opacity: 0; } }
-.clear__title { margin: 0; font-size: 20px; color: var(--accent); letter-spacing: 0.1em; }
+.clear__title { margin: 0; font-family: var(--mono); font-size: 20px; color: var(--accent); letter-spacing: 0.06em; text-transform: uppercase; }
 .clear__moves { margin: 4px 0 0; font-size: 18px; }
-.clear__moves span { font-size: 44px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.clear__moves span { font-family: var(--mono); font-size: 44px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .clear__badges { display: flex; justify-content: center; margin: 6px 0 0; }
 .badge {
   padding: 4px 10px;
   border-radius: 999px;
-  background: rgba(255, 211, 92, 0.18);
+  background: rgba(79, 224, 199, 0.16);
   color: var(--accent);
   font-size: 13px;
   font-weight: 600;

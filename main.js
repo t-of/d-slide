@@ -14,7 +14,7 @@ function save(key, value) {
   try { localStorage.setItem(STORE + key, JSON.stringify(value)); } catch { /* 保存できなくても遊べる */ }
 }
 
-WebAppKit.init({ title: 'かずかくし', text: '数字の見えない 15 パズル。番号の 1 桁だけの白黒、正しい場所とのずれ、行と列の合計など、手がかりから番号を読み解いて元の並びに戻す。' });
+WebAppKit.init({ title: 'D-SLIDE', text: 'ふつうの数字の 15 パズルと、番号の見えない手がかりモード（ずれ・ビット・合計）で遊べるスライドパズル。' });
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js');
@@ -92,13 +92,13 @@ const zureMark = (t, i) => {
 };
 const bitCell = (digit) => (t) => [L.bit(t, digit) ? 'one' : 'zero', ''];
 
-mini($('sample'), SAMPLE, (t, i) => (i === 5 || i === 14 ? ['ask', '?'] : zureMark(t, i)));
 mini($('goal'), L.solved(), (t) => ['', t]);
 
 const MODE_DESC = {
-  zure: '各タイルの、正しい場所からの横と縦のずれが見える',
-  bit: '番号を 2 進数にした 1 桁だけが白黒で見える。桁は 8・4・2・1 で切り替える',
-  goukei: '行と列の番号の合計だけが見える',
+  number: '番号がそのまま見える、ふつうの15パズル',
+  zure: '各タイルの、正しい場所からの横・縦のずれだけが見える',
+  bit: '番号を2進数にした1桁だけが白黒で見える。桁を切り替えて絞り込む',
+  goukei: '行と列の合計だけが見える。1枚動かすと合計の変化で番号が分かる',
 };
 const modesEl = $('modes');
 modesEl.innerHTML = L.MODES.map((m) => `
@@ -113,7 +113,8 @@ modesEl.innerHTML = L.MODES.map((m) => `
 for (const b of modesEl.children) {
   const m = b.dataset.mode;
   const pic = b.querySelector('.mode__pic');
-  if (m === 'zure') mini(pic, SAMPLE, zureMark);
+  if (m === 'number') mini(pic, SAMPLE, (t) => ['', t]);
+  else if (m === 'zure') mini(pic, SAMPLE, zureMark);
   else if (m === 'bit') mini(pic, SAMPLE, bitCell(8));
   else {
     // 合計: 左と上に合計の欄。合っているところだけ色を変える
@@ -169,10 +170,11 @@ function newGame(mode) {
   boardEl.innerHTML = '<span class="slot"></span>'.repeat(16)
     + Array.from({ length: 15 }, (_, i) => `<button class="tile" data-t="${i + 1}"><span class="clue"></span><span class="num">${i + 1}</span></button>`).join('');
   $('mode-name').textContent = L.MODE_NAMES[mode];
-  $('count').hidden = mode === 'bit';
+  $('count').hidden = mode === 'bit' || mode === 'number';
   $('bit-goal').hidden = mode !== 'bit';
   digitsEl.hidden = mode !== 'bit';
   puzzleEl.classList.toggle('with-sums', mode === 'goukei');
+  boardEl.classList.toggle('show-num', mode === 'number');
   const sumCells = (goals) => goals.map((g) => `<span class="sum"><b></b><small>目標 ${g}</small></span>`).join('');
   $('col-sums').innerHTML = sumCells(L.TARGET.cols);
   $('row-sums').innerHTML = sumCells(L.TARGET.rows);
@@ -320,7 +322,7 @@ $('again-btn').addEventListener('click', () => { if (unlocked()) play(); });
 $('home-btn').addEventListener('click', () => { if (unlocked()) toTitle(); });
 $('share-btn').addEventListener('click', () => {
   if (!unlocked()) return;
-  WebAppKit.share({ text: `かずかくし（${L.MODE_NAMES[game.mode]}）で、番号の見えない 15 パズルを ${game.moves} 手で解いた` });
+  WebAppKit.share({ text: `D-SLIDE（${L.MODE_NAMES[game.mode]}）を ${game.moves} 手で解いた` });
 });
 
 renderTitle();

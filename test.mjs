@@ -39,24 +39,25 @@ function* permutations(a, k = 0) {
 }
 
 test('すべらせる: 同じ行・列ならまとめて動き、ほかは動かない', () => {
-  const b = L.solved();                         // 空きは 0 番（左上）
-  assert.deepEqual(L.slide(b, 3), [1, 2, 3]);    // 右端を押すと 3 枚が左へ
-  assert.deepEqual(b.slice(0, 4), [1, 2, 3, 0]);
-  assert.deepEqual(L.slide(b, 15), [7, 11, 15]); // 空き（3 番）の列の下端
+  const b = L.solved();                          // 空きは 15 番（右下）。中身は 1..15, 0
+  assert.deepEqual(L.slide(b, 3), [12, 8, 4]);   // 右上を押すと同じ列の 3 枚が空きのほうへ詰まる
+  assert.equal(b[3], 0);
+  assert.equal(b[7], 4);
+  assert.equal(b[11], 8);
+  assert.equal(b[15], 12);
+  assert.deepEqual(L.slide(b, 8), []);           // 行も列も違う（空きは今 3 番）
+  assert.deepEqual(L.slide(b, 3), []);           // 空きそのもの
+  assert.deepEqual(L.slide(b, 15), [4, 8, 12]);  // 同じ列を戻す
   assert.equal(b[15], 0);
-  assert.deepEqual(L.slide(b, 0), []);           // 行も列も違う
-  assert.deepEqual(L.slide(b, 15), []);          // 空きそのもの
-  assert.deepEqual(L.slide(b, 12), [14, 13, 12]);
-  assert.deepEqual(b.slice(12), [0, 12, 13, 14]);
 });
 
 test('解けるか: 仕様の確かめ用の値', () => {
   const b = L.solved();
   assert.ok(L.solvable(b) && L.isSolved(b));
-  [b[0], b[1]] = [b[1], b[0]];                   // 1 と空きを入れ替え = 空きを右へ 1 つ
+  [b[14], b[15]] = [b[15], b[14]];                // 15 と空きを入れ替え = 空きを左へ 1 つ
   assert.ok(L.solvable(b));
   const c = L.solved();
-  [c[1], c[2]] = [c[2], c[1]];                   // 1 と 2 だけを入れ替え
+  [c[0], c[1]] = [c[1], c[0]];                    // 1 と 2 だけを入れ替え
   assert.ok(!L.solvable(c));
 });
 
@@ -89,7 +90,7 @@ test('まぜ方: 4 × 4 で、いつも解ける・完成形でない・1〜15 �
   for (let i = 0; i < 5000; i++) {
     const b = L.shuffle(4, rand);
     assert.ok(L.solvable(b) && !L.isSolved(b));
-    assert.deepEqual(b.slice().sort((x, y) => x - y), L.solved());
+    assert.deepEqual(b.slice().sort((x, y) => x - y), L.solved().slice().sort((x, y) => x - y));
   }
 });
 
@@ -99,30 +100,24 @@ test('まぜ方: 3 × 3 で、まぜた盤は実際にたどり着ける', () =>
 });
 
 test('手がかり: ずれ・正しい場所・合計', () => {
-  assert.deepEqual(L.offset(5, 5), [0, 0]);
-  assert.deepEqual(L.offset(15, 0), [3, 3]);
-  assert.deepEqual(L.offset(1, 4), [1, 1]);
+  assert.deepEqual(L.offset(5, 4), [0, 0]);       // 5 の正しいマスは 4 番
+  assert.deepEqual(L.offset(1, 15), [3, 3]);      // 1 の正しいマス（左上）から右下の隅まで
+  assert.deepEqual(L.offset(6, 10), [1, 1]);
   assert.equal(L.correctCount(L.solved()), 15);
-  assert.deepEqual(L.TARGET, { rows: [6, 22, 38, 54], cols: [24, 28, 32, 36] });
+  assert.deepEqual(L.TARGET, { rows: [10, 26, 42, 42], cols: [28, 32, 36, 24] });
   const b = L.solved();
-  L.slide(b, 4);                                 // 4 が上へ
+  L.slide(b, 14);                                // 15 が空きのほうへ
   assert.equal(L.correctCount(b), 14);
-  assert.deepEqual(L.sums(b), { rows: [10, 18, 38, 54], cols: [24, 28, 32, 36] });
+  assert.deepEqual(L.sums(b), { rows: [10, 26, 42, 42], cols: [28, 32, 21, 39] });
 });
 
-test('手がかり: ビットの完成図は縞になり、盤が完成なら 4 桁とも同じ', () => {
-  const pic = (d) => L.solved().map((i) => L.bit(i, d)).join('');
-  assert.equal(pic(8), '0000000011111111');       // 下 2 行
-  assert.equal(pic(4), '0000111100001111');       // 2・4 行目
-  assert.equal(pic(2), '0011001100110011');       // 右 2 列
-  assert.equal(pic(1), '0101010101010101');       // 2・4 列目
+test('手がかり: ビット。盤が完成なら 4 桁ともそろい、空きの位置も含めて確かめる', () => {
   for (const d of L.DIGITS) assert.ok(L.bitMatches(L.solved(), d));
   const b = L.solved();
-  L.slide(b, 1);                                 // 空きが 1 番へ
-  assert.ok(!L.bitMatches(b, 1));
-  assert.ok(L.bitMatches(b, 8) === false);       // 空きの場所が違う
+  L.slide(b, 11);                                // 空きが 11 番へ動く（12 が空きのほうへ）
+  for (const d of L.DIGITS) assert.ok(!L.bitMatches(b, d));   // 空きの場所がどの桁でもずれる
   const c = L.solved();
-  [c[5], c[7]] = [c[7], c[5]];                   // 5 と 7 は 2 の桁だけ違う
+  [c[4], c[6]] = [c[6], c[4]];                   // 5 と 7 は 2 の桁だけ違う
   assert.deepEqual(L.DIGITS.map((d) => L.bitMatches(c, d)), [true, true, false, true]);
 });
 
@@ -130,15 +125,23 @@ test('保存: 読めない値ははじめの値、記録は少ないときだけ
   assert.deepEqual(L.readSettings(null), L.DEFAULT_SETTINGS);
   assert.deepEqual(L.readSettings('x'), L.DEFAULT_SETTINGS);
   assert.deepEqual(L.readSettings({ v: 2, sound: false }), L.DEFAULT_SETTINGS);
-  assert.deepEqual(L.readSettings({ v: 1, sound: false, mode: 'zzz' }), { v: 1, sound: false, mode: 'bit' });
+  assert.deepEqual(L.readSettings({ v: 1, sound: false, mode: 'zzz' }), { v: 1, sound: false, mode: 'number' });
   assert.deepEqual(L.readSettings({ v: 1, sound: true, mode: 'goukei' }), { v: 1, sound: true, mode: 'goukei' });
+  assert.deepEqual(L.readSettings({ v: 1, sound: true, mode: 'number' }), { v: 1, sound: true, mode: 'number' });
   const best = L.readBest({ v: 1, zure: 92, bit: -3, goukei: 'a' });
-  assert.deepEqual(best, { v: 1, zure: 92, bit: null, goukei: null });
+  assert.deepEqual(best, { v: 1, number: null, zure: 92, bit: null, goukei: null });
   assert.ok(L.addRecord(best, 'bit', 140));
   assert.ok(!L.addRecord(best, 'bit', 140));
   assert.ok(!L.addRecord(best, 'zure', 100));
   assert.ok(L.addRecord(best, 'zure', 80));
-  assert.deepEqual(best, { v: 1, zure: 80, bit: 140, goukei: null });
+  assert.ok(L.addRecord(best, 'number', 30));
+  assert.deepEqual(best, { v: 1, number: 30, zure: 80, bit: 140, goukei: null });
+});
+
+test('保存: 「ナンバー」を足す前の古い best（v:1、number キーなし）もそのまま引き継ぐ', () => {
+  const old = { v: 1, zure: 55, bit: 40, goukei: 99 };
+  const best = L.readBest(old);
+  assert.deepEqual(best, { v: 1, number: null, zure: 55, bit: 40, goukei: 99 });
 });
 
 console.log(`\n${n} tests passed`);

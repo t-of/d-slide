@@ -1,4 +1,4 @@
-# かずかくし
+# D-SLIDE（リポジトリ名は kazukakushi のまま）
 
 T.OF... のアプリ。https://t-of.github.io/kazukakushi/
 

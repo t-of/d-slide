@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#10131c">
-  <meta name="description" content="数字の見えない 15 パズル。番号の 1 桁だけの白黒、正しい場所とのずれ、行と列の合計など、手がかりから番号を読み解いて元の並びに戻す。">
-  <title>かずかくし — 番号の見えない15パズル</title>
+  <meta name="theme-color" content="#0b0d12">
+  <meta name="description" content="普通の数字の15パズルと、番号の見えない手がかりモード（ずれ・ビット・合計）で遊べるスライドパズル。">
+  <title>D-SLIDE — 15パズル（スライドパズル）</title>
 
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="かずかくし">
-  <meta property="og:title" content="かずかくし — 番号の見えない15パズル">
-  <meta property="og:description" content="数字の見えない 15 パズル。番号の 1 桁だけの白黒、正しい場所とのずれ、行と列の合計など、手がかりから番号を読み解いて元の並びに戻す。">
+  <meta property="og:site_name" content="D-SLIDE">
+  <meta property="og:title" content="D-SLIDE — 15パズル（スライドパズル）">
+  <meta property="og:description" content="普通の数字の15パズルと、番号の見えない手がかりモード（ずれ・ビット・合計）で遊べるスライドパズル。">
   <meta property="og:url" content="https://t-of.github.io/kazukakushi/">
   <meta property="og:image" content="https://t-of.github.io/kazukakushi/icons/og.png">
   <meta property="og:image:width" content="1200">
@@ -21,7 +21,7 @@
   <!-- apple-mobile-web-app-status-bar-style は付けない（black-translucent だと iOS 26 で上部が隠れる） -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="かずかくし">
+  <meta name="apple-mobile-web-app-title" content="D-SLIDE">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
   <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
@@ -34,25 +34,13 @@
   <!-- タイトル -->
   <main class="screen title" id="title">
     <header class="title__head">
-      <div class="board board--mini" id="sample" aria-hidden="true"></div>
-      <h1 class="title__name">かずかくし</h1>
-      <p class="title__catch">番号の見えない15パズル</p>
+      <h1 class="title__name">D<span class="title__dash">-</span>SLIDE</h1>
+      <p class="title__catch">15-PUZZLE / 手がかりで解く</p>
     </header>
 
     <section class="howto">
-      <ol class="howto__list">
-        <li>空きマスと同じ行か列のタイルを押すと、空きマスのほうへすべる</li>
-        <li>タイルの番号は見えない。見えるのは手がかりだけ。<b>番号どおりに並んだらクリア</b></li>
-        <li>手がかりは 3 種類から選ぶ</li>
-      </ol>
-      <div class="goal">
-        <div class="board board--mini board--goal" id="goal" aria-label="完成図"></div>
-        <p class="goal__note">完成図。<b>空きは左上</b>、1〜15 が左上から右へ並ぶ</p>
-      </div>
-      <ul class="tips">
-        <li><b>ビット</b>のこつ: 桁を切り替えて見比べると、1 枚ずつの番号が分かる</li>
-        <li><b>合計</b>のこつ: タイルを縦に動かすと 2 つの行の合計が変わる。変わった分がそのタイルの番号</li>
-      </ul>
+      <div class="board board--mini board--goal" id="goal" aria-label="完成図"></div>
+      <p class="howto__text">空きの列・行のタイルを押してすべらせ、<b>番号どおりに並べる</b>。空きは右下、1〜15 が左上から並ぶ。</p>
     </section>
 
     <section class="modes" id="modes"></section>
