@@ -92,60 +92,66 @@ const zureMark = (t, i) => {
 };
 const bitCell = (digit) => (t) => [L.bit(t, digit) ? 'one' : 'zero', ''];
 
-mini($('goal'), L.solved(), (t) => ['', t]);
-
 const MODE_DESC = {
   number: '番号がそのまま見える、ふつうの15パズル',
   zure: '各タイルの、正しい場所からの横・縦のずれだけが見える',
   bit: '番号を2進数にした1桁だけが白黒で見える。桁を切り替えて絞り込む',
   goukei: '行と列の合計だけが見える。1枚動かすと合計の変化で番号が分かる',
 };
-const modesEl = $('modes');
-modesEl.innerHTML = L.MODES.map((m) => `
-  <button class="mode" data-mode="${m}">
-    <span class="board board--mini mode__pic mode__pic--${m}" aria-hidden="true"></span>
-    <span class="mode__text">
-      <span class="mode__head"><span class="mode__name">${L.MODE_NAMES[m]}</span><span class="mode__level">${L.MODE_LEVELS[m]}</span></span>
-      <span class="mode__desc">${MODE_DESC[m]}</span>
-      <span class="mode__record"></span>
-    </span>
+const ENGLISH = { number: 'NUMBER', zure: 'OFFSET', bit: 'BIT', goukei: 'SUM' };
+
+// モード切り替えのタブ。押しても始まらず、下の見本が変わるだけ（START で始める）
+const tabsEl = $('tabs');
+tabsEl.innerHTML = L.MODES.map((m, i) => `
+  <button class="tab" data-mode="${m}" role="tab">
+    <span class="tab__no">0${i + 1}</span>
+    <span class="tab__code">${ENGLISH[m]}</span>
   </button>`).join('');
-for (const b of modesEl.children) {
-  const m = b.dataset.mode;
-  const pic = b.querySelector('.mode__pic');
-  if (m === 'number') mini(pic, SAMPLE, (t) => ['', t]);
-  else if (m === 'zure') mini(pic, SAMPLE, zureMark);
-  else if (m === 'bit') mini(pic, SAMPLE, bitCell(8));
-  else {
+
+const previewBoard = $('preview-board');
+function showPreview(m) {
+  if (m === 'goukei') {
     // 合計: 左と上に合計の欄。合っているところだけ色を変える
     const { rows, cols } = L.sums(SAMPLE);
     const sum = (v, goal) => `<span class="msum${v === goal ? ' hit' : ''}"></span>`;
-    pic.innerHTML = '<span></span>' + cols.map((v, c) => sum(v, L.TARGET.cols[c])).join('')
+    previewBoard.classList.add('preview__board--goukei');
+    previewBoard.innerHTML = '<span></span>' + cols.map((v, c) => sum(v, L.TARGET.cols[c])).join('')
       + rows.map((v, r) => sum(v, L.TARGET.rows[r])
         + SAMPLE.slice(r * 4, r * 4 + 4).map((t) => `<span class="${t ? 'mtile' : 'mhole'}"></span>`).join('')).join('');
+  } else {
+    previewBoard.classList.remove('preview__board--goukei');
+    const pic = m === 'number' ? (t) => ['', t] : m === 'zure' ? zureMark : bitCell(8);
+    mini(previewBoard, SAMPLE, pic);
+  }
+  $('preview-name').textContent = L.MODE_NAMES[m];
+  $('preview-level').textContent = L.MODE_LEVELS[m];
+  $('preview-desc').textContent = MODE_DESC[m];
+  const rec = best[m];
+  $('preview-record').textContent = rec == null ? 'まだ記録なし' : `最少 ${rec} 手`;
+  for (const b of tabsEl.children) {
+    const sel = b.dataset.mode === m;
+    b.classList.toggle('tab--active', sel);
+    b.setAttribute('aria-selected', String(sel));
   }
 }
 
 function renderTitle() {
-  for (const b of modesEl.children) {
-    const m = b.dataset.mode;
-    const rec = best[m];
-    b.querySelector('.mode__record').textContent = rec == null ? '' : `最少 ${rec} 手`;
-    b.classList.toggle('mode--last', m === settings.mode);
-  }
+  showPreview(settings.mode);
   const snd = $('sound-btn');
   snd.textContent = settings.sound ? '音 オン' : '音 オフ';
   snd.setAttribute('aria-pressed', String(settings.sound));
 }
 
-// カードを押すとそのまま始まる
-modesEl.addEventListener('click', (e) => {
+// タブは選ぶだけ。始めるのは START ボタン
+tabsEl.addEventListener('click', (e) => {
   const b = e.target.closest('[data-mode]');
   if (!b) return;
+  sfx.tap();
   settings.mode = b.dataset.mode;
   saveSettings();
-  play();
+  showPreview(settings.mode);
 });
+$('start-btn').addEventListener('click', play);
 
 $('sound-btn').addEventListener('click', () => {
   settings.sound = !settings.sound;
@@ -239,14 +245,15 @@ function render() {
   }
 }
 
-// タイルの大きさ: 幅（最大 420px）と、上下の表示を除いた高さの両方に収まる正方形。合計は横・縦とも 5 マス分
+// タイルの大きさ: puzzle 自身に配られた幅（最大 460px）・高さの両方に収まる正方形。合計は横・縦とも 5 マス分
+// stage を縦の flex にして、盤（puzzle）が上下の手がかり（clue・digits）を除いた残りいっぱいに広がるようにしてある。
 function fit() {
   if (!game || playEl.hidden) return;
   const units = game.mode === 'goukei' ? 5 : 4;
   const gap = 6;
-  const w = Math.min(stageEl.clientWidth, 420) - gap * (units + 1);
-  const h = stageEl.clientHeight - gap * (units + 1);
-  const size = Math.max(24, Math.min(92, Math.floor(Math.min(w, h) / units)));
+  const w = Math.min(puzzleEl.clientWidth, 460) - gap * (units + 1);
+  const h = puzzleEl.clientHeight - gap * (units + 1);
+  const size = Math.max(24, Math.min(104, Math.floor(Math.min(w, h) / units)));
   puzzleEl.style.setProperty('--t', `${size}px`);
   puzzleEl.style.setProperty('--g', `${gap}px`);
 }
@@ -288,9 +295,11 @@ function finish() {
   }
   boardEl.classList.add('solved');
   sfx.clear();
+  const prevBest = best[game.mode];
   const record = L.addRecord(best, game.mode, game.moves);
   if (record) { save('best', best); sfx.record(); }
   $('clear-moves').textContent = game.moves;
+  $('clear-best').textContent = record || prevBest == null ? '' : `BEST ${prevBest}`;
   $('badges').hidden = !record;
   clearEl.hidden = false;
   playEl.classList.add('cleared');

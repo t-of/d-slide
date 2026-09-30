@@ -104,10 +104,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
   border-radius: calc(var(--t) * 0.14);
   background: var(--paper);
   color: var(--ink);
-  box-shadow: inset 0 -3px 0 var(--paper-edge);
+  box-shadow: inset 0 -3px 0 var(--paper-edge), 0 3px 6px rgba(0, 0, 0, 0.35);
   transform: translate(calc(var(--c) * (var(--t) + var(--g))), calc(var(--r) * (var(--t) + var(--g))));
-  transition: transform 0.1s ease-out, background-color 0.15s;
+  transition: transform 0.14s cubic-bezier(0.2, 0.8, 0.3, 1), background-color 0.15s;
 }
+.tile:active { transform: translate(calc(var(--c) * (var(--t) + var(--g))), calc(var(--r) * (var(--t) + var(--g)))) scale(0.96); }
 .instant .tile { transition: none; }
 /* 番号の代わりの封の印 */
 .tile::before {
@@ -120,7 +121,23 @@ button { font: inherit; color: inherit; cursor: pointer; }
   border-radius: 50%;
   opacity: 0.14;
 }
-.tile.one { background: var(--dark); color: #dfe3f0; box-shadow: inset 0 -3px 0 var(--dark-edge); }
+.tile.one { background: var(--dark); color: #dfe3f0; box-shadow: inset 0 -3px 0 var(--dark-edge), 0 3px 6px rgba(0, 0, 0, 0.35); }
+
+/* クリア時、そろった順にタイルの縁が光る輪が広がる */
+.tile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 0 rgba(79, 224, 199, 0.65);
+  opacity: 0;
+  pointer-events: none;
+}
+.solved .tile::after { animation: flash 0.6s var(--delay, 0s) both; }
+@keyframes flash {
+  0% { box-shadow: 0 0 0 0 rgba(79, 224, 199, 0.65); opacity: 1; }
+  100% { box-shadow: 0 0 0 10px rgba(79, 224, 199, 0); opacity: 0; }
+}
 
 .clue { position: absolute; inset: 0; font-size: calc(var(--t) * 0.26); font-weight: 700; font-variant-numeric: tabular-nums; }
 .zx { position: absolute; left: 10%; top: 8%; }
@@ -151,8 +168,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 }
 .solved .clue, .solved .tile::before { visibility: hidden; }
 .solved .num { opacity: 1; transform: none; transition: opacity 0.2s var(--delay, 0s), transform 0.25s var(--delay, 0s); }
-/* ナンバーモード: 番号を最初から見せる（封の印は消す） */
-.show-num .num { opacity: 1; transform: none; }
+/* ナンバーモード: 番号を最初から、大きく見せる（封の印は消す） */
+.show-num .num { opacity: 1; transform: none; font-size: calc(var(--t) * 0.5); }
 .show-num .tile::before { content: none; }
 
 /* 小さな盤（見本・完成図・モードの絵） */
@@ -176,7 +193,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 /* ---- タイトル ---- */
 
-.title { gap: 10px; }
+.title { gap: 0; }
 .title__head { text-align: center; padding-top: 10px; }
 .title__name {
   margin: 0;
@@ -195,54 +212,69 @@ button { font: inherit; color: inherit; cursor: pointer; }
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
+.title__rule { margin: 14px 0 0; font-size: 12.5px; color: var(--muted); }
+.title__rule b { color: var(--fg); }
 
-.howto {
+/* モードのタブ（01 NUMBER / 02 OFFSET / …）。押しても始まらず、下の見本が変わるだけ */
+.tabs {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  background: var(--face);
+  margin-top: 18px;
   border: 1px solid var(--line);
-  border-radius: 12px;
-  font-size: 12.5px;
-  line-height: 1.5;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.tab {
+  flex: 1;
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: var(--face);
   color: var(--muted);
 }
-.howto b { color: var(--fg); font-weight: 600; }
-.board--goal { --t: 17px; --g: 2px; flex: none; }
+.tab:last-child { border-right: 0; }
+.tab__no { font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; }
+.tab__code { font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: 0.02em; }
+.tab--active { background: rgba(79, 224, 199, 0.14); color: var(--accent); box-shadow: inset 0 -2px 0 var(--accent); }
 
-.modes { display: flex; flex-direction: column; gap: 8px; }
-.mode {
-  position: relative;
+/* 選んだモードの見本 */
+.preview {
   display: flex;
   align-items: center;
   gap: 14px;
-  min-height: 44px;
-  padding: 12px 12px 12px 16px;
-  border: 1px solid var(--line);
+  margin-top: 10px;
+  padding: 14px;
   background: var(--face);
-  border-radius: 10px;
-  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 12px;
 }
-.mode::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 8px; bottom: 8px;
-  width: 3px;
-  border-radius: 2px;
-  background: var(--line);
+.preview__board { --t: 22px; --g: 3px; flex: none; }
+.preview__board--goukei { grid-template-columns: repeat(5, var(--t)); background: transparent; }
+.preview__board--goukei .mtile, .preview__board--goukei .mhole { border-radius: 2px; }
+.preview__text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.preview__head { margin: 0; display: flex; align-items: baseline; gap: 8px; }
+.preview__name { font-size: 19px; font-weight: 700; }
+.preview__level { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.04em; }
+.preview__desc { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+.preview__record { margin: 0; font-family: var(--mono); font-size: 12px; color: var(--accent); }
+
+.start {
+  margin-top: 12px;
+  width: 100%;
+  min-height: 56px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--mono);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
 }
-.mode--last::before { background: var(--accent); }
-.mode__pic { --t: 14px; --g: 2px; flex: none; }
-.mode__pic--goukei { grid-template-columns: repeat(5, var(--t)); background: transparent; }
-.mode__pic--goukei .mtile, .mode__pic--goukei .mhole { border-radius: 2px; }
-.mode__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.mode__head { display: flex; align-items: baseline; gap: 8px; }
-.mode__name { font-size: 17px; font-weight: 700; }
-.mode__level { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.04em; }
-.mode__desc { font-size: 12px; color: var(--muted); line-height: 1.45; }
-.mode__record { font-family: var(--mono); font-size: 12px; color: var(--accent); }
-.mode__record:empty { display: none; }
 
 .foot { margin-top: auto; padding-top: 8px; text-align: center; }
 .foot__actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; }
@@ -251,24 +283,60 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 /* ---- 遊ぶ ---- */
 
-.play { height: 100dvh; min-height: 0; position: relative; gap: 8px; }
-.hud { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
-.hud__back { justify-self: start; min-height: 44px; }
-.hud__moves { display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
-.hud__label { font-size: 11px; color: var(--muted); }
-.hud__num { font-family: var(--mono); font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.hud__min { justify-self: end; font-size: 13px; color: var(--muted); }
+.play { height: 100dvh; min-height: 0; position: relative; gap: 6px; }
 
-.info { display: flex; justify-content: center; min-height: 28px; }
-.info__count { margin: 0; font-size: 15px; color: var(--muted); }
-.info__count b { color: var(--fg); font-size: 20px; font-variant-numeric: tabular-nums; }
-.info__goal { display: flex; align-items: center; gap: 10px; }
-.info__label { font-size: 12px; color: var(--muted); }
-#bit-goal-board { --t: 14px; --g: 2px; }
+/* 細い 1 行の HUD: ← もどる ・ モード名 ・ 手数 ・ BEST */
+.hud {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  padding-bottom: 2px;
+}
+.hud__back {
+  justify-self: start;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  background: var(--face);
+  border-radius: 8px;
+  font-size: 20px;
+  line-height: 1;
+}
+.hud__mode { font-size: 12.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hud__stat {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.hud__stat b { font-size: 18px; font-weight: 700; color: var(--fg); font-variant-numeric: tabular-nums; }
+.hud__stat--best { color: var(--accent); }
+.hud__stat--best b { color: var(--accent); }
 
-.stage { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+/* 盤が主役。手がかりの補助は盤の上下に小さく一体化する */
+.stage { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 
-.puzzle { --t: 64px; --g: 6px; display: grid; grid-template-areas: 'board'; }
+.hints {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  min-height: 22px;
+  padding-bottom: 6px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.hints__count b { color: var(--fg); font-family: var(--mono); font-size: 15px; font-variant-numeric: tabular-nums; }
+.hints__goal { display: flex; align-items: center; gap: 6px; }
+.hints__goal b { color: var(--accent); font-family: var(--mono); }
+#bit-goal-board { --t: 13px; --g: 2px; }
+
+.puzzle { --t: 64px; --g: 6px; flex: 1; min-height: 0; display: grid; place-content: center; grid-template-areas: 'board'; }
 .puzzle .board { grid-area: board; }
 .sums { display: none; }
 .puzzle.with-sums { grid-template-areas: '. cols' 'rows board'; grid-template-columns: var(--t) auto; grid-template-rows: var(--t) auto; gap: 0; }
@@ -292,15 +360,16 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .sum small { font-size: 10px; color: var(--muted); }
 .sum.hit { background: rgba(95, 207, 143, 0.2); color: var(--ok); }
 
-.digits { display: flex; justify-content: center; gap: 8px; }
+.digits { display: flex; justify-content: center; gap: 6px; padding-top: 6px; }
 .digit {
   position: relative;
-  width: 60px;
-  min-height: 48px;
+  width: 52px;
+  min-height: 40px;
   border: 1px solid var(--line);
   background: var(--face);
-  border-radius: 12px;
-  font-size: 20px;
+  border-radius: 10px;
+  font-family: var(--mono);
+  font-size: 17px;
   font-weight: 700;
 }
 .digit[aria-pressed="true"] { border-color: var(--accent); background: rgba(79, 224, 199, 0.16); color: #fff; }
@@ -309,15 +378,28 @@ button { font: inherit; color: inherit; cursor: pointer; }
   display: block;
   position: absolute;
   right: 5px; top: 5px;
-  width: 10px; height: 10px;
+  width: 8px; height: 8px;
   border-radius: 50%;
   background: var(--ok);
 }
 
-.tools { display: flex; gap: 8px; justify-content: center; padding-top: 4px; }
-.tools .btn { flex: 1; max-width: 200px; }
-.play.cleared .stage { align-items: flex-start; }
+/* アイコン＋短い文字の控えめなボタン */
+.tools { display: flex; gap: 8px; justify-content: center; padding-top: 6px; }
+.tool {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  background: var(--face);
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.tool__ico { font-size: 15px; color: var(--fg); }
 .play.cleared .tools, .play.cleared .digits { visibility: hidden; }
+.play.cleared .puzzle { place-content: start center; }   /* 下から出るクリアのカードに場所を譲る */
 
 /* ---- クリア（盤の上に下寄せで重ねる） ---- */
 
@@ -345,8 +427,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
 }
 @keyframes rise { from { transform: translateY(24px); opacity: 0; } }
 .clear__title { margin: 0; font-family: var(--mono); font-size: 20px; color: var(--accent); letter-spacing: 0.06em; text-transform: uppercase; }
-.clear__moves { margin: 4px 0 0; font-size: 18px; }
-.clear__moves span { font-family: var(--mono); font-size: 44px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.clear__moves { margin: 4px 0 0; font-size: 14px; color: var(--muted); }
+.clear__moves span { font-family: var(--mono); font-size: 44px; font-weight: 700; color: var(--fg); font-variant-numeric: tabular-nums; }
+.clear__moves small { margin-left: 4px; font-size: 14px; color: var(--muted); }
+.clear__best { margin: 2px 0 0; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.clear__best:empty { display: none; }
 .clear__badges { display: flex; justify-content: center; margin: 6px 0 0; }
 .badge {
   padding: 4px 10px;
@@ -364,6 +449,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   .tile { transition: none; }
   .solved .num { transition: none; }
+  .solved .tile::after { animation: none; }
   .clear__card { animation: none; }
 }
 

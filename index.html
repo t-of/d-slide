@@ -36,14 +36,21 @@
     <header class="title__head">
       <h1 class="title__name">D<span class="title__dash">-</span>SLIDE</h1>
       <p class="title__catch">15-PUZZLE / 手がかりで解く</p>
+      <p class="title__rule">列・行を押してすべらせ、番号どおりに並べる</p>
     </header>
 
-    <section class="howto">
-      <div class="board board--mini board--goal" id="goal" aria-label="完成図"></div>
-      <p class="howto__text">空きの列・行のタイルを押してすべらせ、<b>番号どおりに並べる</b>。空きは右下、1〜15 が左上から並ぶ。</p>
+    <nav class="tabs" id="tabs" role="tablist" aria-label="モード"></nav>
+
+    <section class="preview" id="preview">
+      <span class="board board--mini preview__board" id="preview-board" aria-hidden="true"></span>
+      <div class="preview__text">
+        <p class="preview__head"><span class="preview__name" id="preview-name"></span><span class="preview__level" id="preview-level"></span></p>
+        <p class="preview__desc" id="preview-desc"></p>
+        <p class="preview__record" id="preview-record"></p>
+      </div>
     </section>
 
-    <section class="modes" id="modes"></section>
+    <button class="start" id="start-btn">START</button>
 
     <footer class="foot">
       <div class="foot__actions">
@@ -58,39 +65,41 @@
   <!-- 遊ぶ -->
   <main class="screen play" id="play" hidden>
     <header class="hud">
-      <button class="pill hud__back" id="back-btn">もどる</button>
-      <div class="hud__moves"><span class="hud__label"><span id="mode-name"></span> ・ 手数</span><span class="hud__num" id="moves">0</span></div>
-      <div class="hud__min" id="hud-min">最少 <span id="min">0</span></div>
+      <button class="hud__back" id="back-btn" aria-label="もどる">‹</button>
+      <span class="hud__mode" id="mode-name"></span>
+      <span class="hud__stat">手数<b id="moves">0</b></span>
+      <span class="hud__stat hud__stat--best" id="hud-min">BEST<b id="min">0</b></span>
     </header>
 
-    <div class="info">
-      <p class="info__count" id="count">正しい場所 <b id="correct">0</b> / 15</p>
-      <div class="info__goal" id="bit-goal">
-        <span class="info__label">完成図（<span id="bit-goal-digit">8</span> の桁）</span>
-        <div class="board board--mini" id="bit-goal-board" aria-hidden="true"></div>
-      </div>
-    </div>
-
     <section class="stage" id="stage">
+      <div class="hints" id="clue-row">
+        <span class="hints__count" id="count">正しい場所 <b id="correct">0</b>/15</span>
+        <div class="hints__goal" id="bit-goal">
+          <span><b id="bit-goal-digit">8</b> の桁</span>
+          <span class="board board--mini" id="bit-goal-board" aria-hidden="true"></span>
+        </div>
+      </div>
+
       <div class="puzzle" id="puzzle">
         <div class="sums sums--cols" id="col-sums"></div>
         <div class="sums sums--rows" id="row-sums"></div>
         <div class="board" id="board"></div>
       </div>
+
+      <div class="digits" id="digits" role="group" aria-label="見る桁"></div>
     </section>
 
-    <div class="digits" id="digits" role="group" aria-label="見る桁"></div>
-
     <footer class="tools">
-      <button class="btn" id="reset-btn">はじめから</button>
-      <button class="btn" id="another-btn">べつの盤</button>
+      <button class="tool" id="reset-btn"><span class="tool__ico" aria-hidden="true">↺</span>はじめから</button>
+      <button class="tool" id="another-btn"><span class="tool__ico" aria-hidden="true">⇄</span>べつの盤</button>
     </footer>
 
     <!-- クリア（盤の上に下寄せで重ねる） -->
     <section class="clear" id="clear" hidden>
       <div class="clear__card" role="dialog" aria-labelledby="clear-title">
-        <h2 class="clear__title" id="clear-title">そろった</h2>
-        <p class="clear__moves"><span id="clear-moves">0</span> 手</p>
+        <h2 class="clear__title" id="clear-title">CLEAR</h2>
+        <p class="clear__moves"><span id="clear-moves">0</span><small>手</small></p>
+        <p class="clear__best" id="clear-best"></p>
         <p class="clear__badges" id="badges" hidden><span class="badge">記録更新</span></p>
         <button class="btn btn--main" id="again-btn">もう一度</button>
         <div class="clear__row">
