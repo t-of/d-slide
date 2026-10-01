@@ -8,8 +8,9 @@
 // keys.filter(k => k !== CACHE) のように書くと、ほかのアプリのキャッシュまで消してしまう。
 // ブラウザの HTTP キャッシュを通さない（install は reload、fetch は no-cache）。古い main.js と新しい index.html が混ざって動かなくなるのを防ぐ。
 
-const PREFIX = 'kazukakushi-';
-const VERSION = 'v2';
+const PREFIX = 'd-slide-';
+const OLD_PREFIX = 'kazukakushi-'; // URL を変える前（kazukakushi）の古いキャッシュを消す
+const VERSION = 'v1';
 const CACHE = `${PREFIX}${VERSION}`;
 const FONT_CACHE = `${PREFIX}fonts`;
 
@@ -35,7 +36,7 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys()
     .then((keys) => Promise.all(keys
-      .filter((k) => k.startsWith(PREFIX) && k !== CACHE && k !== FONT_CACHE)
+      .filter((k) => (k.startsWith(PREFIX) && k !== CACHE && k !== FONT_CACHE) || k.startsWith(OLD_PREFIX))
       .map((k) => caches.delete(k))))
     .then(() => self.clients.claim()));
 });

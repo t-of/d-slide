@@ -3,7 +3,7 @@
 
 ## 🔗 リンク
 
-- 遊ぶ: https://t-of.github.io/kazukakushi/
+- 遊ぶ: https://t-of.github.io/d-slide/
 - 制作: [T.OF...](https://t-of.github.io/)
 
 ## 遊び方
@@ -44,6 +44,6 @@ node test.mjs                 # すべらせる・解けるか・まぜ方・手
 
 - 完成形: マスの番号 i の正しいタイルは `(i + 1) % n²`（最後のマスだけ空き）。ふつうの 15 パズルの並びに合わせている。
 - まぜ方: 16 マスをランダムに並べ、解けるものだけ使う。解ける条件は「並び（タイルの正しいマスへの置換）の偶奇 = 空きの、正しいマス（右下）からの距離（行 + 列）の偶奇」。正しいマスの行・列の合計の偶奇は空きの位置に関わらず一定なので、実際に比べる相手は空きの生の位置（行 + 列）のままでよい。テストでは、2 × 2 と 3 × 3 の全部の並びについて、この条件と実際にたどり着ける盤がちょうど一致することを確かめている。
-- 保存は端末内の `localStorage`。`kazukakushi.settings`（`{ v: 1, sound, mode }`）と `kazukakushi.best`（`{ v: 1, number, zure, bit, goukei }`、まだ遊んでいないモードは `null`）。「ナンバー」モードを足す前（`number` キーがない）の記録もそのまま読み込む。
-- リポジトリ名・URL・保存キーの接頭辞（`kazukakushi`）は、公開直後に付けた名前をそのまま使っている（表示名だけ D-SLIDE に変更）。
+- 保存は端末内の `localStorage`。`d-slide.settings`（`{ v: 1, sound, mode }`）と `d-slide.best`（`{ v: 1, number, zure, bit, goukei }`、まだ遊んでいないモードは `null`）。「ナンバー」モードを足す前（`number` キーがない）の記録もそのまま読み込む。URL を変える前の `kazukakushi.` の記録も引き継ぐ。
+- リポジトリ名・URL・保存キー・SW のキャッシュ名は、旧 `kazukakushi` から `d-slide` に変えた（2026-10-01）。旧 URL（`kazukakushi`）には転送用の受け皿リポジトリを残し、新 URL へ送る。
 - 元は Processing で作った「ビットで見る15パズル」と「ヒントで解く15パズル」（未完成）の 2 本。

@@ -1,13 +1,16 @@
 import * as L from './logic.js';
 
 // localStorage はほかのアプリと共有される（同じ t-of.github.io のため）。
-// キーは必ず 'kazukakushi.' で始める。
-const STORE = 'kazukakushi.';
+// キーは必ず 'd-slide.' で始める。
+const STORE = 'd-slide.';
+const OLD_STORE = 'kazukakushi.'; // URL を変える前（kazukakushi）の記録を引き継ぐ
 
 function load(key, fallback) {
   try {
     const v = localStorage.getItem(STORE + key);
-    return v == null ? fallback : JSON.parse(v);
+    if (v != null) return JSON.parse(v);
+    const old = localStorage.getItem(OLD_STORE + key);
+    return old == null ? fallback : JSON.parse(old);
   } catch { return fallback; }
 }
 function save(key, value) {
